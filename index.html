@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🃏 Permutazione Carte</title>
+  <title>🃏 Card Permutation Simulator</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -68,20 +68,20 @@
 </head>
 <body>
 
-  <h1>🃏 Permutazione Carte</h1>
-  <p class="sub">Mosse per tornare alla configurazione iniziale</p>
+  <h1>🃏 Card Permutation Simulator</h1>
+  <p class="sub">Steps to return tu initial configuration</p>
 
   <div class="controls">
-    <label>Fino a n =</label>
+    <label>Up to n =</label>
     <input type="number" id="maxN" value="20" min="1" max="50">
-    <button id="btn">▶ Simula</button>
+    <button id="btn">▶ Simulate</button>
   </div>
 
   <div id="status"></div>
 
   <div class="tabs" id="tabs" style="display:none">
-    <div class="tab active" onclick="showTab('table')">Tabella</div>
-    <div class="tab" onclick="showTab('chart')">Grafico</div>
+    <div class="tab active" onclick="showTab('table')">Table</div>
+    <div class="tab" onclick="showTab('chart')">Chart</div>
   </div>
 
   <div id="tableContainer"></div>
@@ -206,7 +206,7 @@
       if (isNaN(maxN) || maxN < 1) return;
       var btn = document.getElementById("btn");
       btn.disabled = true;
-      btn.textContent = "⏳ Calcolo...";
+      btn.textContent = "⏳ Calculate...";
       document.getElementById("status").textContent = "";
 
       setTimeout(function() {
@@ -217,18 +217,18 @@
         }
 
         // Table
-        var html = '<table><thead><tr><th>n carte</th><th>mosse</th></tr></thead><tbody>';
+        var html = '<table><thead><tr><th>n cards</th><th>moves</th></tr></thead><tbody>';
         allResults.forEach(function(r) {
           var mosseStr = r.timeout ? ">5M" : r.moves.toLocaleString("it-IT");
           html += '<tr><td>' + r.n + '</td><td>' + mosseStr + '</td></tr>';
         });
         html += '</tbody></table>';
         document.getElementById("tableContainer").innerHTML = html;
-        document.getElementById("status").textContent = "✓ Calcolato per " + maxN + " valori";
+        document.getElementById("status").textContent = "✓ Calculated for " + maxN + " values";
         document.getElementById("tabs").style.display = "flex";
 
         btn.disabled = false;
-        btn.textContent = "▶ Simula";
+        btn.textContent = "▶ Simulate";
       }, 50);
     });
   </script>
