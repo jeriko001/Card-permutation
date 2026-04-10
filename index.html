@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🃏 Simulatore Permutazione Ciclica Delle Carte</title>
+  <title>🃏 Permutazione Carte</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -13,74 +13,63 @@
       min-height: 100vh;
       padding: 24px 16px;
     }
-    h1 {
-      font-size: 22px;
-      margin-bottom: 6px;
-      color: #fff;
-    }
-    p.sub {
-      font-size: 12px;
-      color: #888;
-      margin-bottom: 24px;
-    }
+    h1 { font-size: 22px; margin-bottom: 6px; color: #fff; }
+    p.sub { font-size: 12px; color: #888; margin-bottom: 24px; }
     .controls {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
+      display: flex; gap: 12px; align-items: center;
+      margin-bottom: 24px; flex-wrap: wrap;
     }
     label { font-size: 14px; color: #aaa; }
     input[type=number] {
-      width: 70px;
-      padding: 6px 8px;
-      font-size: 14px;
-      font-family: monospace;
-      background: #1e1e1e;
-      border: 1px solid #333;
-      border-radius: 6px;
-      color: #fff;
-      outline: none;
+      width: 70px; padding: 6px 8px; font-size: 14px;
+      font-family: monospace; background: #1e1e1e;
+      border: 1px solid #333; border-radius: 6px;
+      color: #fff; outline: none;
     }
     button {
-      padding: 8px 20px;
-      font-size: 14px;
-      font-family: monospace;
-      background: #4f46e5;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
+      padding: 8px 20px; font-size: 14px; font-family: monospace;
+      background: #4f46e5; color: #fff; border: none;
+      border-radius: 6px; cursor: pointer;
     }
-    button:hover { background: #4338ca; }
     button:disabled { background: #333; color: #666; cursor: default; }
-    table {
-      width: 100%;
-      max-width: 400px;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    thead tr { background: #1e1e1e; }
-    th {
-      padding: 10px 16px;
-      text-align: left;
-      color: #888;
-      font-weight: normal;
+    #status { font-size: 13px; color: #888; margin-bottom: 16px; min-height: 20px; }
+
+    .tabs {
+      display: flex; gap: 0; margin-bottom: 20px;
       border-bottom: 1px solid #333;
     }
+    .tab {
+      padding: 8px 20px; font-size: 13px; font-family: monospace;
+      cursor: pointer; color: #888; border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .tab.active { color: #a5b4fc; border-bottom-color: #4f46e5; }
+
+    table { width: 100%; max-width: 400px; border-collapse: collapse; font-size: 14px; }
+    thead tr { background: #1e1e1e; }
+    th { padding: 10px 16px; text-align: left; color: #888; font-weight: normal; border-bottom: 1px solid #333; }
     th:last-child { text-align: right; }
     td { padding: 8px 16px; border-bottom: 1px solid #1e1e1e; }
     td:last-child { text-align: right; font-weight: bold; color: #a5b4fc; }
     tr:nth-child(even) { background: #141414; }
-    .timeout { color: #f87171 !important; }
-    #status { font-size: 13px; color: #888; margin-bottom: 12px; min-height: 20px; }
+
+    #chartContainer {
+      display: none;
+      width: 100%;
+      max-width: 600px;
+    }
+    canvas {
+      background: #1e1e1e;
+      border-radius: 8px;
+      width: 100% !important;
+    }
+    #tableContainer { display: block; }
   </style>
 </head>
 <body>
 
-  <h1>🃏 Simulatore Carte</h1>
-  <p class="sub">Conta le mosse per tornare alla situazione iniziale</p>
+  <h1>🃏 Permutazione Carte</h1>
+  <p class="sub">Mosse per tornare alla configurazione iniziale</p>
 
   <div class="controls">
     <label>Fino a n =</label>
@@ -89,31 +78,37 @@
   </div>
 
   <div id="status"></div>
-  <div id="output"></div>
+
+  <div class="tabs" id="tabs" style="display:none">
+    <div class="tab active" onclick="showTab('table')">Tabella</div>
+    <div class="tab" onclick="showTab('chart')">Grafico</div>
+  </div>
+
+  <div id="tableContainer"></div>
+  <div id="chartContainer"><canvas id="chart"></canvas></div>
 
   <script>
+    var allResults = [];
+
     function simulaCarteN(n) {
       var deck = [];
-      for (var i = 0; i < n; i++) deck.push(1);
-
-      var moves = 0;
-      var step = 1;
-      var MAX = 5000000;
+      for (var i = 0; i < n; i++) deck.push({ face: 1, id: i });
+      var moves = 0, step = 1, MAX = 5000000;
 
       function statoIniziale() {
-        for (var i = 0; i < deck.length; i++) {
-          if (deck[i] !== 1) return false;
+        for (var i = 0; i < n; i++) {
+          if (deck[i].face !== 1 || deck[i].id !== i) return false;
         }
         return true;
       }
 
       do {
-        // Gira le prime `step` carte (inverti ordine e flip)
-        var top = [];
-        for (var j = step - 1; j >= 0; j--) top.push(1 - deck[j]);
-        for (var j = 0; j < step; j++) deck[j] = top[j];
+        var packet = deck.splice(0, step);
+        packet.reverse();
+        for (var j = 0; j < packet.length; j++)
+          packet[j] = { face: 1 - packet[j].face, id: packet[j].id };
+        deck = packet.concat(deck);
         moves++;
-
         if (statoIniziale()) break;
         step = step % n + 1;
       } while (moves < MAX);
@@ -121,31 +116,116 @@
       return { moves: moves, timeout: moves >= MAX };
     }
 
+    function showTab(name) {
+      document.querySelectorAll(".tab").forEach(function(t, i) {
+        t.classList.toggle("active", (i === 0 && name === "table") || (i === 1 && name === "chart"));
+      });
+      document.getElementById("tableContainer").style.display = name === "table" ? "block" : "none";
+      document.getElementById("chartContainer").style.display = name === "chart" ? "block" : "none";
+      if (name === "chart") drawChart();
+    }
+
+    function drawChart() {
+      var canvas = document.getElementById("chart");
+      var dpr = window.devicePixelRatio || 1;
+      var w = canvas.parentElement.clientWidth;
+      var h = Math.min(300, w * 0.6);
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.height = h + "px";
+      var ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+
+      var pad = { top: 20, right: 20, bottom: 40, left: 60 };
+      var cw = w - pad.left - pad.right;
+      var ch = h - pad.top - pad.bottom;
+
+      // Filter out timeouts
+      var data = allResults.filter(function(r) { return !r.timeout; });
+      if (data.length === 0) return;
+
+      var maxY = Math.max.apply(null, data.map(function(r) { return r.moves; }));
+      var minN = data[0].n, maxN = data[data.length - 1].n;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid lines
+      ctx.strokeStyle = "#2a2a2a";
+      ctx.lineWidth = 1;
+      for (var gi = 0; gi <= 4; gi++) {
+        var gy = pad.top + ch - (gi / 4) * ch;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, gy);
+        ctx.lineTo(pad.left + cw, gy);
+        ctx.stroke();
+        ctx.fillStyle = "#555";
+        ctx.font = "10px monospace";
+        ctx.textAlign = "right";
+        ctx.fillText(Math.round((gi / 4) * maxY).toLocaleString("it-IT"), pad.left - 6, gy + 3);
+      }
+
+      // X axis labels
+      ctx.fillStyle = "#555";
+      ctx.font = "10px monospace";
+      ctx.textAlign = "center";
+      data.forEach(function(r) {
+        var x = pad.left + ((r.n - minN) / (maxN - minN || 1)) * cw;
+        if (r.n % 5 === 0 || r.n === 1) ctx.fillText(r.n, x, h - pad.bottom + 14);
+      });
+
+      // Axis labels
+      ctx.fillStyle = "#666";
+      ctx.font = "11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("n carte", pad.left + cw / 2, h - 4);
+
+      // Line
+      ctx.beginPath();
+      ctx.strokeStyle = "#4f46e5";
+      ctx.lineWidth = 2;
+      data.forEach(function(r, i) {
+        var x = pad.left + ((r.n - minN) / (maxN - minN || 1)) * cw;
+        var y = pad.top + ch - (r.moves / maxY) * ch;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Dots
+      data.forEach(function(r) {
+        var x = pad.left + ((r.n - minN) / (maxN - minN || 1)) * cw;
+        var y = pad.top + ch - (r.moves / maxY) * ch;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = "#a5b4fc";
+        ctx.fill();
+      });
+    }
+
     document.getElementById("btn").addEventListener("click", function() {
       var maxN = parseInt(document.getElementById("maxN").value);
       if (isNaN(maxN) || maxN < 1) return;
-
       var btn = document.getElementById("btn");
       btn.disabled = true;
       btn.textContent = "⏳ Calcolo...";
       document.getElementById("status").textContent = "";
-      document.getElementById("output").innerHTML = "";
 
       setTimeout(function() {
-        var html = '<table><thead><tr><th>n carte</th><th>mosse</th></tr></thead><tbody>';
-        var results = [];
-
+        allResults = [];
         for (var n = 1; n <= maxN; n++) {
           var r = simulaCarteN(n);
-          results.push(r);
-          var mosseStr = r.timeout ? ">5.000.000" : r.moves.toLocaleString("it-IT");
-          var cls = r.timeout ? ' class="timeout"' : '';
-          html += '<tr><td>' + n + '</td><td' + cls + '>' + mosseStr + '</td></tr>';
+          allResults.push({ n: n, moves: r.moves, timeout: r.timeout });
         }
 
+        // Table
+        var html = '<table><thead><tr><th>n carte</th><th>mosse</th></tr></thead><tbody>';
+        allResults.forEach(function(r) {
+          var mosseStr = r.timeout ? ">5M" : r.moves.toLocaleString("it-IT");
+          html += '<tr><td>' + r.n + '</td><td>' + mosseStr + '</td></tr>';
+        });
         html += '</tbody></table>';
-        document.getElementById("output").innerHTML = html;
+        document.getElementById("tableContainer").innerHTML = html;
         document.getElementById("status").textContent = "✓ Calcolato per " + maxN + " valori";
+        document.getElementById("tabs").style.display = "flex";
 
         btn.disabled = false;
         btn.textContent = "▶ Simula";
