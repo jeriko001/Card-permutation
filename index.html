@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🃏 Simulatore Permutazione Ciclica Delle Carte</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: monospace;
+      background: #0f0f0f;
+      color: #f0f0f0;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+    p.sub {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 24px;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    label { font-size: 14px; color: #aaa; }
+    input[type=number] {
+      width: 70px;
+      padding: 6px 8px;
+      font-size: 14px;
+      font-family: monospace;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #fff;
+      outline: none;
+    }
+    button {
+      padding: 8px 20px;
+      font-size: 14px;
+      font-family: monospace;
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #4338ca; }
+    button:disabled { background: #333; color: #666; cursor: default; }
+    table {
+      width: 100%;
+      max-width: 400px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    thead tr { background: #1e1e1e; }
+    th {
+      padding: 10px 16px;
+      text-align: left;
+      color: #888;
+      font-weight: normal;
+      border-bottom: 1px solid #333;
+    }
+    th:last-child { text-align: right; }
+    td { padding: 8px 16px; border-bottom: 1px solid #1e1e1e; }
+    td:last-child { text-align: right; font-weight: bold; color: #a5b4fc; }
+    tr:nth-child(even) { background: #141414; }
+    .timeout { color: #f87171 !important; }
+    #status { font-size: 13px; color: #888; margin-bottom: 12px; min-height: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>🃏 Simulatore Carte</h1>
+  <p class="sub">Conta le mosse per tornare alla situazione iniziale</p>
+
+  <div class="controls">
+    <label>Fino a n =</label>
+    <input type="number" id="maxN" value="20" min="1" max="50">
+    <button id="btn">▶ Simula</button>
+  </div>
+
+  <div id="status"></div>
+  <div id="output"></div>
+
+  <script>
+    function simulaCarteN(n) {
+      var deck = [];
+      for (var i = 0; i < n; i++) deck.push(1);
+
+      var moves = 0;
+      var step = 1;
+      var MAX = 5000000;
+
+      function statoIniziale() {
+        for (var i = 0; i < deck.length; i++) {
+          if (deck[i] !== 1) return false;
+        }
+        return true;
+      }
+
+      do {
+        // Gira le prime `step` carte (inverti ordine e flip)
+        var top = [];
+        for (var j = step - 1; j >= 0; j--) top.push(1 - deck[j]);
+        for (var j = 0; j < step; j++) deck[j] = top[j];
+        moves++;
+
+        if (statoIniziale()) break;
+        step = step % n + 1;
+      } while (moves < MAX);
+
+      return { moves: moves, timeout: moves >= MAX };
+    }
+
+    document.getElementById("btn").addEventListener("click", function() {
+      var maxN = parseInt(document.getElementById("maxN").value);
+      if (isNaN(maxN) || maxN < 1) return;
+
+      var btn = document.getElementById("btn");
+      btn.disabled = true;
+      btn.textContent = "⏳ Calcolo...";
+      document.getElementById("status").textContent = "";
+      document.getElementById("output").innerHTML = "";
+
+      setTimeout(function() {
+        var html = '<table><thead><tr><th>n carte</th><th>mosse</th></tr></thead><tbody>';
+        var results = [];
+
+        for (var n = 1; n <= maxN; n++) {
+          var r = simulaCarteN(n);
+          results.push(r);
+          var mosseStr = r.timeout ? ">5.000.000" : r.moves.toLocaleString("it-IT");
+          var cls = r.timeout ? ' class="timeout"' : '';
+          html += '<tr><td>' + n + '</td><td' + cls + '>' + mosseStr + '</td></tr>';
+        }
+
+        html += '</tbody></table>';
+        document.getElementById("output").innerHTML = html;
+        document.getElementById("status").textContent = "✓ Calcolato per " + maxN + " valori";
+
+        btn.disabled = false;
+        btn.textContent = "▶ Simula";
+      }, 50);
+    });
+  </script>
+
+</body>
+</html>
