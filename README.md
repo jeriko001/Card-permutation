@@ -1,3 +1,3 @@
-# Permutazione-carte
+# Card permutation simulator
 
-Simulatore che calcola l'ordine ciclico di una permutazione su n carte: gira 1, poi 2, poi 3... fino a n carte, e riparte — finché il mazzo non torna alla posizione iniziale. Esplora come cresce il numero di mosse al crescere di n.
+A simulator that calculates the cyclic order of a permutation of n cards: it cycles through 1, then 2, then 3... up to n cards, and starts over—until the deck returns to its initial position. See how the number of moves increases as n increases.
