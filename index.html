@@ -1,237 +1,252 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🃏 Card Permutation Simulator</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: monospace;
-      background: #0f0f0f;
-      color: #f0f0f0;
-      min-height: 100vh;
-      padding: 24px 16px;
-    }
-    h1 { font-size: 22px; margin-bottom: 6px; color: #fff; }
-    p.sub { font-size: 12px; color: #888; margin-bottom: 24px; }
-    .controls {
-      display: flex; gap: 12px; align-items: center;
-      margin-bottom: 24px; flex-wrap: wrap;
-    }
-    label { font-size: 14px; color: #aaa; }
-    input[type=number] {
-      width: 70px; padding: 6px 8px; font-size: 14px;
-      font-family: monospace; background: #1e1e1e;
-      border: 1px solid #333; border-radius: 6px;
-      color: #fff; outline: none;
-    }
-    button {
-      padding: 8px 20px; font-size: 14px; font-family: monospace;
-      background: #4f46e5; color: #fff; border: none;
-      border-radius: 6px; cursor: pointer;
-    }
-    button:disabled { background: #333; color: #666; cursor: default; }
-    #status { font-size: 13px; color: #888; margin-bottom: 16px; min-height: 20px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🃏 Card Cycle Simulator Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a; color: #e0e0e0; padding: 20px; line-height: 1.6;
+        }
+.container { max-width: 900px; margin: 0 auto; }
+        .card {
+            background: #161616; padding: 25px; border-radius: 12px;
+            border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+        h1 { font-size: 26px; color: #fff; margin-bottom: 5px; font-weight: 700; }
+        p.sub { font-size: 13px; color: #888; margin-bottom: 20px; font-weight: 400; }
 
-    .tabs {
-      display: flex; gap: 0; margin-bottom: 20px;
-      border-bottom: 1px solid #333;
-    }
-    .tab {
-      padding: 8px 20px; font-size: 13px; font-family: monospace;
-      cursor: pointer; color: #888; border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-    }
-    .tab.active { color: #a5b4fc; border-bottom-color: #4f46e5; }
+        .controls {
+            display: flex; gap: 12px; background: #1e1e1e; padding: 20px;
+            border-radius: 10px; align-items: center; flex-wrap: wrap;
+        }
+        input {
+            background: #0a0a0a; border: 1px solid #444; color: #fff;
+            padding: 12px; border-radius: 8px; font-size: 16px; flex: 1; min-width: 120px;
+        }
+        button {
+            padding: 12px 24px; background: #4f46e5; color: #fff;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        button:hover { background: #4338ca; transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        button:disabled { background: #333; cursor: not-allowed; opacity: 0.7; }
 
-    table { width: 100%; max-width: 400px; border-collapse: collapse; font-size: 14px; }
-    thead tr { background: #1e1e1e; }
-    th { padding: 10px 16px; text-align: left; color: #888; font-weight: normal; border-bottom: 1px solid #333; }
-    th:last-child { text-align: right; }
-    td { padding: 8px 16px; border-bottom: 1px solid #1e1e1e; }
-    td:last-child { text-align: right; font-weight: bold; color: #a5b4fc; }
-    tr:nth-child(even) { background: #141414; }
+        .secondary-btn { background: #2d2d2d; border: 1px solid #444; }
+        .secondary-btn:hover { background: #3d3d3d; }
 
-    #chartContainer {
-      display: none;
-      width: 100%;
-      max-width: 600px;
-    }
-    canvas {
-      background: #1e1e1e;
-      border-radius: 8px;
-      width: 100% !important;
-    }
-    #tableContainer { display: block; }
-  </style>
+        .tabs { display: flex; border-bottom: 1px solid #333; margin: 20px 0; align-items: center; }
+        .tab {
+            padding: 12px 25px; cursor: pointer; color: #888;
+            border-bottom: 2px solid transparent; transition: 0.3s;
+        }
+        .tab.active { color: #a5b4fc; border-bottom-color: #4f46e5; font-weight: bold; }
+        
+        .copy-btn {
+            margin-left: auto; background: transparent; border: 1px solid #444;
+            padding: 6px 12px; font-size: 12px; border-radius: 6px; color: #a5b4fc;
+        }
+
+        #displayArea { min-height: 250px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-family: 'JetBrains Mono', monospace; }
+        th { text-align: left; color: #888; border-bottom: 1px solid #333; padding: 12px; font-size: 12px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #1e1e1e; font-size: 14px; }
+        .res-highlight { color: #a5b4fc; font-weight: 700; font-size: 32px; margin-top: 10px; font-family: 'JetBrains Mono', monospace; }
+
+        #chartCanvas { width: 100% !important; height: 350px !important; background: #111; border-radius: 10px; padding: 10px; }
+        .progress-bar-container { width: 100%; background: #111; height: 4px; border-radius: 2px; margin-top: 15px; display: none; }
+        #progress { width: 0%; height: 100%; background: #4f46e5; border-radius: 2px; transition: width 0.1s; }
+        
+        #status { font-size: 12px; margin-top: 10px; color: #666; font-style: italic; }
+    </style>
 </head>
 <body>
 
-  <h1>🃏 Card Permutation Simulator</h1>
-  <p class="sub">Steps to return tu initial configuration</p>
+<div class="container">
+    <div class="card">
+        <h1>🃏 Card Cycle Simulator</h1>
 
-  <div class="controls">
-    <label>Up to n =</label>
-    <input type="number" id="maxN" value="20" min="1" max="50">
-    <button id="btn">▶ Simulate</button>
-  </div>
+        <div class="controls">
+            <input type="number" id="inputValue" value="20" min="1">
+            <button id="btnSingle">Calculate Single</button>
+            <button id="btnRange" class="secondary-btn">Simulate 1 to N</button>
+        </div>
+        <div class="progress-bar-container" id="progCont">
+            <div id="progress"></div>
+        </div>
+        <div id="status">Ready.</div>
+    </div>
 
-  <div id="status"></div>
+    <div class="tabs" id="tabBar" style="display:none">
+        <div class="tab active" id="tabTable">Data Table</div>
+        <div class="tab" id="tabChart">Growth Chart</div>
+        <button class="copy-btn" id="btnCopy">📋 Copy Sequence</button>
+    </div>
 
-  <div class="tabs" id="tabs" style="display:none">
-    <div class="tab active" onclick="showTab('table')">Table</div>
-    <div class="tab" onclick="showTab('chart')">Chart</div>
-  </div>
+    <div id="displayArea" class="card" style="display:none">
+        <div id="tableContent"></div>
+        <div id="chartContent" style="display:none">
+            <canvas id="chartCanvas"></canvas>
+        </div>
+    </div>
+</div>
 
-  <div id="tableContainer"></div>
-  <div id="chartContainer"><canvas id="chart"></canvas></div>
+<script>
+    let results = [];
+    let isRunning = false;
 
-  <script>
-    var allResults = [];
+    // --- CORE LOGIC (DO NOT MODIFY) ---
+    function simulate(n) {
+        let deck = [];
+        for (let i = 0; i < n; i++) deck.push({ f: 1, id: i });
+        let moves = 0, step = 1, MAX = 10000000;
+        
+        while (moves < MAX) {
+            let packet = deck.splice(0, step);
+            packet.reverse();
+            for (let j = 0; j < packet.length; j++) packet[j].f = 1 - packet[j].f;
+            deck = packet.concat(deck);
+            moves++;
 
-    function simulaCarteN(n) {
-      var deck = [];
-      for (var i = 0; i < n; i++) deck.push({ face: 1, id: i });
-      var moves = 0, step = 1, MAX = 5000000;
-
-      function statoIniziale() {
-        for (var i = 0; i < n; i++) {
-          if (deck[i].face !== 1 || deck[i].id !== i) return false;
+            let match = true;
+            for (let i = 0; i < n; i++) {
+                if (deck[i].f !== 1 || deck[i].id !== i) { match = false; break; }
+            }
+            if (match) return moves;
+            step = (step % n) + 1;
         }
-        return true;
-      }
-
-      do {
-        var packet = deck.splice(0, step);
-        packet.reverse();
-        for (var j = 0; j < packet.length; j++)
-          packet[j] = { face: 1 - packet[j].face, id: packet[j].id };
-        deck = packet.concat(deck);
-        moves++;
-        if (statoIniziale()) break;
-        step = step % n + 1;
-      } while (moves < MAX);
-
-      return { moves: moves, timeout: moves >= MAX };
+        return -1; 
     }
 
-    function showTab(name) {
-      document.querySelectorAll(".tab").forEach(function(t, i) {
-        t.classList.toggle("active", (i === 0 && name === "table") || (i === 1 && name === "chart"));
-      });
-      document.getElementById("tableContainer").style.display = name === "table" ? "block" : "none";
-      document.getElementById("chartContainer").style.display = name === "chart" ? "block" : "none";
-      if (name === "chart") drawChart();
+    const btnS = document.getElementById('btnSingle');
+    const btnR = document.getElementById('btnRange');
+    const btnCopy = document.getElementById('btnCopy');
+    const input = document.getElementById('inputValue');
+    const status = document.getElementById('status');
+    const progress = document.getElementById('progress');
+    const progCont = document.getElementById('progCont');
+    const display = document.getElementById('displayArea');
+    const tableDiv = document.getElementById('tableContent');
+
+    // Single Calculation
+    btnS.onclick = async () => {
+        const n = parseInt(input.value);
+        if (isNaN(n) || n < 1) return;
+        
+        status.textContent = "Processing...";
+        display.style.display = 'block';
+        document.getElementById('tabBar').style.display = 'none';
+        tableDiv.innerHTML = "Computing result...";
+        
+        await new Promise(r => setTimeout(r, 50));
+        const res = simulate(n);
+        
+        tableDiv.innerHTML = `
+            <div style="text-align:center; padding: 40px 20px;">
+                <p style="color:#888; font-size: 14px;">Total moves for <b>${n}</b> cards:</p>
+                <p class="res-highlight">${res === -1 ? "Timeout (>10M)" : res.toLocaleString()}</p>
+            </div>`;
+        status.textContent = "Calculation complete.";
+    };
+
+    // Range Simulation
+    btnR.onclick = async () => {
+        const maxN = parseInt(input.value);
+        if (isNaN(maxN) || maxN < 1 || isRunning) return;
+        
+        isRunning = true;
+        results = [];
+        display.style.display = 'block';
+        document.getElementById('tabBar').style.display = 'flex';
+        progCont.style.display = 'block';
+        tableDiv.innerHTML = "";
+        
+        for (let i = 1; i <= maxN; i++) {
+            status.textContent = `Computing n = ${i} of ${maxN}`;
+            progress.style.width = (i / maxN * 100) + "%";
+            await new Promise(r => setTimeout(r, 0));
+            results.push({ n: i, m: simulate(i) });
+        }
+        
+        renderTable();
+        isRunning = false;
+        status.textContent = "Simulation complete.";
+        progCont.style.display = 'none';
+        progress.style.width = "0%";
+    };
+
+    function renderTable() {
+        let html = '<table><tr><th>Cards (n)</th><th>Total Moves</th></tr>';
+        results.forEach(r => {
+            html += `<tr><td>${r.n}</td><td>${r.m === -1 ? "Timeout" : r.m.toLocaleString()}</td></tr>`;
+        });
+        html += '</table>';
+        tableDiv.innerHTML = html;
+        showTab('table');
+    }
+
+    // Copy to Clipboard
+    btnCopy.onclick = () => {
+        if (results.length === 0) return;
+        const sequence = results.map(r => r.m).join(', ');
+        navigator.clipboard.writeText(sequence).then(() => {
+            const originalText = btnCopy.innerHTML;
+            btnCopy.innerHTML = "✅ Copied!";
+            setTimeout(() => btnCopy.innerHTML = originalText, 2000);
+        });
+    };
+
+    // Tabs & Chart
+    document.getElementById('tabTable').onclick = () => showTab('table');
+    document.getElementById('tabChart').onclick = () => showTab('chart');
+
+    function showTab(type) {
+        document.getElementById('tabTable').className = 'tab ' + (type === 'table' ? 'active' : '');
+        document.getElementById('tabChart').className = 'tab ' + (type === 'chart' ? 'active' : '');
+        tableDiv.style.display = type === 'table' ? 'block' : 'none';
+        document.getElementById('chartContent').style.display = type === 'chart' ? 'block' : 'none';
+        if (type === 'chart') drawChart();
     }
 
     function drawChart() {
-      var canvas = document.getElementById("chart");
-      var dpr = window.devicePixelRatio || 1;
-      var w = canvas.parentElement.clientWidth;
-      var h = Math.min(300, w * 0.6);
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      canvas.style.height = h + "px";
-      var ctx = canvas.getContext("2d");
-      ctx.scale(dpr, dpr);
+        const canvas = document.getElementById('chartCanvas');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.offsetWidth;
+        const h = canvas.offsetHeight;
+        canvas.width = w; canvas.height = h;
 
-      var pad = { top: 20, right: 20, bottom: 40, left: 60 };
-      var cw = w - pad.left - pad.right;
-      var ch = h - pad.top - pad.bottom;
+        const validResults = results.filter(r => r.m !== -1);
+        if (validResults.length < 2) return;
 
-      // Filter out timeouts
-      var data = allResults.filter(function(r) { return !r.timeout; });
-      if (data.length === 0) return;
+        const maxY = Math.max(...validResults.map(r => r.m));
+        const pad = 50;
 
-      var maxY = Math.max.apply(null, data.map(function(r) { return r.moves; }));
-      var minN = data[0].n, maxN = data[data.length - 1].n;
-
-      ctx.clearRect(0, 0, w, h);
-
-      // Grid lines
-      ctx.strokeStyle = "#2a2a2a";
-      ctx.lineWidth = 1;
-      for (var gi = 0; gi <= 4; gi++) {
-        var gy = pad.top + ch - (gi / 4) * ch;
+        // Draw simple axes
+        ctx.strokeStyle = '#333';
         ctx.beginPath();
-        ctx.moveTo(pad.left, gy);
-        ctx.lineTo(pad.left + cw, gy);
+        ctx.moveTo(pad, pad); ctx.lineTo(pad, h - pad); ctx.lineTo(w - pad, h - pad);
         ctx.stroke();
-        ctx.fillStyle = "#555";
-        ctx.font = "10px monospace";
-        ctx.textAlign = "right";
-        ctx.fillText(Math.round((gi / 4) * maxY).toLocaleString("it-IT"), pad.left - 6, gy + 3);
-      }
 
-      // X axis labels
-      ctx.fillStyle = "#555";
-      ctx.font = "10px monospace";
-      ctx.textAlign = "center";
-      data.forEach(function(r) {
-        var x = pad.left + ((r.n - minN) / (maxN - minN || 1)) * cw;
-        if (r.n % 5 === 0 || r.n === 1) ctx.fillText(r.n, x, h - pad.bottom + 14);
-      });
-
-      // Axis labels
-      ctx.fillStyle = "#666";
-      ctx.font = "11px monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("n cards", pad.left + cw / 2, h - 4);
-
-      // Line
-      ctx.beginPath();
-      ctx.strokeStyle = "#4f46e5";
-      ctx.lineWidth = 2;
-      data.forEach(function(r, i) {
-        var x = pad.left + ((r.n - minN) / (maxN - minN || 1)) * cw;
-        var y = pad.top + ch - (r.moves / maxY) * ch;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-
-      // Dots
-      data.forEach(function(r) {
-        var x = pad.left + ((r.n - minN) / (maxN - minN || 1)) * cw;
-        var y = pad.top + ch - (r.moves / maxY) * ch;
+        // Draw Line
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(x, y, 3, 0, Math.PI * 2);
-        ctx.fillStyle = "#a5b4fc";
-        ctx.fill();
-      });
-    }
-
-    document.getElementById("btn").addEventListener("click", function() {
-      var maxN = parseInt(document.getElementById("maxN").value);
-      if (isNaN(maxN) || maxN < 1) return;
-      var btn = document.getElementById("btn");
-      btn.disabled = true;
-      btn.textContent = "⏳ Calculate...";
-      document.getElementById("status").textContent = "";
-
-      setTimeout(function() {
-        allResults = [];
-        for (var n = 1; n <= maxN; n++) {
-          var r = simulaCarteN(n);
-          allResults.push({ n: n, moves: r.moves, timeout: r.timeout });
-        }
-
-        // Table
-        var html = '<table><thead><tr><th>n cards</th><th>moves</th></tr></thead><tbody>';
-        allResults.forEach(function(r) {
-          var mosseStr = r.timeout ? ">5M" : r.moves.toLocaleString("it-IT");
-          html += '<tr><td>' + r.n + '</td><td>' + mosseStr + '</td></tr>';
+        validResults.forEach((r, i) => {
+            const x = pad + (i / (validResults.length - 1)) * (w - pad * 2);
+            const y = (h - pad) - (r.m / maxY) * (h - pad * 2);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         });
-        html += '</tbody></table>';
-        document.getElementById("tableContainer").innerHTML = html;
-        document.getElementById("status").textContent = "✓ Calculated for " + maxN + " values";
-        document.getElementById("tabs").style.display = "flex";
-
-        btn.disabled = false;
-        btn.textContent = "▶ Simulate";
-      }, 50);
-    });
-  </script>
+        ctx.stroke();
+    }
+</script>
 
 </body>
 </html>
