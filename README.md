@@ -34,7 +34,7 @@ Verified manually and computationally up to n=20.
 
 ## Usage
 
-Open `index.html` in any browser. No installation required.
+Open `index.html` in any browser. No installation required. At link: https://jeriko001.github.io/Card-permutation
 
 ## Author
 
