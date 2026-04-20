@@ -72,7 +72,7 @@
 
 <div class="container">
     <div class="card">
-        <h1>🃏 Card Cycle Simulator</h1>
+        <h1>🃏 Card Cycle Simulator <small style="color: #666; font-weight: normal;">(OEIS <a href="https://oeis.org/A395069" style="color: #4f46e5;">A395069</a>)</small></h1>
 
         <div class="controls">
             <input type="number" id="inputValue" value="20" min="1">
@@ -183,15 +183,28 @@
         progress.style.width = "0%";
     };
 
-    function renderTable() {
-        let html = '<table><tr><th>Cards (n)</th><th>Total Moves</th></tr>';
-        results.forEach(r => {
-            html += `<tr><td>${r.n}</td><td>${r.m === -1 ? "Timeout" : r.m.toLocaleString()}</td></tr>`;
-        });
-        html += '</table>';
-        tableDiv.innerHTML = html;
-        showTab('table');
-    }
+function renderTable() {
+    // Intestazione con link ai siti OEIS
+    let html = '<table><tr>' +
+               '<th>Cards (n)</th>' +
+               '<th><a href="https://oeis.org/A002326" target="_blank" style="color: #888; text-decoration: underline;">Cycles (m/n)</a></th>' +
+               '<th><a href="https://oeis.org/A395069" target="_blank" style="color: #888; text-decoration: underline;">Total Moves</a></th>' +
+               '</tr>';
+    
+    results.forEach(r => {
+        const cycles = r.m === -1 ? "-" : (r.m / r.n);
+        
+        html += `<tr>
+            <td>${r.n}</td>
+            <td style="color: #888;">${cycles}</td>
+            <td>${r.m === -1 ? "Timeout" : r.m.toLocaleString()}</td>
+        </tr>`;
+    });
+    
+    html += '</table>';
+    tableDiv.innerHTML = html;
+    showTab('table');
+}
 
     // Copy to Clipboard
     btnCopy.onclick = () => {
