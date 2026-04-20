@@ -25,10 +25,10 @@ Thus a(3) = 3 full steps = 9 sub-steps.
 
 ## Sequence
 
-This sequence has been submitted to the 
+This sequence has been deposited to the 
 On-Line Encyclopedia of Integer Sequences (OEIS) as A395069.
 
-1, 8, 9, 24, 50, 72, 28, 64, 162, 60, 121, 240, 234, 392, 75, 400, ...
+2, 8, 9, 24, 50, 72, 28, 64, 162, 60, 121, 240, 234, 392, 75, 160, 204, 648, 228, 400 ...
 
 Verified manually and computationally up to n=20.
 
