@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A395069 — Card Permutation Sequence</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #2a2a3a;
+    --accent: #c8a96e;
+    --accent2: #7c6fcf;
+    --text: #e8e8f0;
+    --muted: #7a7a9a;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Playfair Display', serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.4;
+  }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 6vw 60px;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero::after {
+    content: '♠';
+    position: absolute;
+    right: 6vw;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: clamp(120px, 20vw, 280px);
+    color: var(--accent);
+    opacity: 0.04;
+    pointer-events: none;
+    font-family: serif;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(-50%) rotate(-5deg); }
+    50% { transform: translateY(-54%) rotate(3deg); }
+  }
+
+  .oeis-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.1s;
+  }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(2.8rem, 7vw, 6rem);
+    font-weight: 400;
+    line-height: 1.1;
+    max-width: 14ch;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.3s;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-desc {
+    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+    color: var(--muted);
+    max-width: 52ch;
+    line-height: 1.7;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.5s;
+  }
+
+  .hero-links {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.8s ease forwards 0.7s;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0a0f;
+    font-weight: 500;
+  }
+
+  .btn-primary:hover { background: #d4b87a; transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Sequence strip */
+  .seq-strip {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 6vw;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .seq-strip::before {
+    content: 'a(n) ';
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-right: 8px;
+  }
+
+  .seq-numbers {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .seq-numbers span {
+    color: var(--text);
+    transition: color 0.2s;
+    cursor: default;
+  }
+
+  .seq-numbers span:hover { color: var(--accent); }
+
+  /* Main content */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 80px 6vw;
+  }
+
+  .section {
+    margin-bottom: 80px;
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 200px;
+  }
+
+  .section h2 {
+    font-family: var(--serif);
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 400;
+    margin-bottom: 24px;
+    line-height: 1.3;
+  }
+
+  /* Formula box */
+  .formula-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 32px 40px;
+    margin: 32px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .formula-box::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(200,169,110,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .formula {
+    font-family: var(--mono);
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .formula .fn { color: var(--accent); }
+  .formula .op { color: var(--muted); }
+  .formula .ref { color: var(--accent2); }
+
+  .formula-note {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .formula-note a {
+    color: var(--accent2);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  .formula-note a:hover { border-color: var(--accent2); }
+
+  /* Table */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  thead tr {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 14px 20px;
+    text-align: left;
+    color: var(--accent);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+
+  td {
+    padding: 11px 20px;
+    border-bottom: 1px solid rgba(42,42,58,0.5);
+    color: var(--muted);
+    transition: background 0.15s;
+  }
+
+  tr:hover td { background: rgba(200,169,110,0.03); }
+
+  td:first-child { color: var(--accent); font-weight: 500; }
+  td:nth-child(3) { color: var(--text); }
+
+  tr:last-child td { border-bottom: none; }
+
+  /* Example walkthrough */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .step-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 24px;
+    position: relative;
+  }
+
+  .step-number {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .step-ops {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .step-op {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .step-op .k-label {
+    color: var(--muted);
+    min-width: 40px;
+    font-size: 10px;
+  }
+
+  .cards-before, .cards-after {
+    display: flex;
+    gap: 4px;
+  }
+
+  .card-chip {
+    width: 26px;
+    height: 34px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .card-chip.up {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+  }
+
+  .card-chip.down {
+    background: var(--card);
+    color: var(--accent);
+    border-color: var(--accent);
+    transform: rotate(180deg);
+  }
+
+  .arrow {
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  /* Code block */
+  .code-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 28px 32px;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .code-block pre {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  .code-block .kw { color: var(--accent2); }
+  .code-block .fn { color: var(--accent); }
+  .code-block .cm { color: #3d3d5c; }
+  .code-block .st { color: #7ecfb0; }
+  .code-block .nm { color: #e0a87c; }
+
+  .copy-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--border);
+    color: var(--muted);
+    border: none;
+    padding: 6px 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+
+  .copy-btn:hover { background: var(--accent); color: var(--bg); }
+
+  /* Info grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 24px;
+  }
+
+  .info-cell {
+    background: var(--card);
+    padding: 24px;
+  }
+
+  .info-cell .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .info-cell .value {
+    font-size: 1rem;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .info-cell .value a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(200,169,110,0.3);
+    transition: border-color 0.2s;
+  }
+
+  .info-cell .value a:hover { border-color: var(--accent); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 6vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    gap: 16px;
+  }
+
+  .footer-left {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .footer-left strong { color: var(--accent); }
+
+  .footer-right {
+    display: flex;
+    gap: 12px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .hero { padding: 60px 5vw 40px; }
+    main { padding: 40px 5vw; }
+    .formula-box { padding: 24px 20px; }
+    th, td { padding: 10px 14px; }
+    footer { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="oeis-tag">OEIS · A395069 · Approved Apr 2026</div>
+  <h1>The Card<br>Permutation<br><em>Sequence</em></h1>
+  <p class="hero-desc">
+    How many steps does it take for a deck of n cards to return to its original state under a cyclic signed prefix-reversal shuffle? Discovered physically with a deck of cards by Fabio Longo.
+  </p>
+  <div class="hero-links">
+    <a href="https://oeis.org/A395069" target="_blank" class="btn btn-primary">View on OEIS ↗</a>
+    <a href="https://jeriko001.github.io/Card-permutation/" target="_blank" class="btn btn-ghost">Card Simulator ↗</a>
+  </div>
+</section>
+
+<!-- SEQUENCE STRIP -->
+<div class="seq-strip">
+  <span class="seq-numbers">
+    <span>2</span>, <span>8</span>, <span>9</span>, <span>24</span>, <span>50</span>, <span>72</span>, <span>28</span>, <span>64</span>, <span>162</span>, <span>60</span>, <span>121</span>, <span>240</span>, <span>234</span>, <span>392</span>, <span>75</span>, <span>160</span>, <span>204</span>, <span>648</span>, <span>228</span>, <span>400</span>, <span>294</span>, <span>264</span>, <span>529</span>, <span>504</span>, <span>200</span>, <span>1352</span>, <span>540</span>, <span>504</span>, <span>1682</span>, <span>1800</span>, <span>186</span>, <span>384</span>, <span>2178</span>, <span>748</span>, <span>1225</span>, <span>324</span>, <span>740</span>, <span>1140</span>, <span>1521</span>, <span>2160</span>, <span>3362</span>, <span>336</span>, <span>1204</span>, <span>484</span>, <span>540</span>, <span>460</span>, <span>1692</span>, <span>2304</span>, <span>1470</span>, <span>5000</span>, <span>2601</span>, <span>624</span> …
+  </span>
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- DEFINITION -->
+  <section class="section">
+    <div class="section-label">Definition</div>
+    <h2>The Shuffle</h2>
+    <p style="color:var(--muted); line-height:1.8; max-width:64ch; font-size:0.95rem;">
+      Start with n cards labeled 1 to n, all face up, in natural order. One full step consists of n sub-steps: in sub-step k (k = 1, 2, …, n), the top k cards are physically reversed as a block — their order is inverted and each card is flipped (face-up becomes face-down and vice versa). <strong style="color:var(--text);">a(n) counts how many full steps are required to return to the original state.</strong>
+    </p>
+  </section>
+
+  <!-- FORMULA -->
+  <section class="section">
+    <div class="section-label">Formula</div>
+    <h2>Closed Form</h2>
+    <div class="formula-box">
+      <div class="formula">
+        <span class="fn">a</span><span class="op">(</span>n<span class="op">) = </span>n <span class="op">×</span> <span class="ref">A002326</span><span class="op">(</span>n<span class="op">)</span>
+      </div>
+      <p class="formula-note">
+        Where <a href="https://oeis.org/A002326" target="_blank">A002326</a>(n) is the multiplicative order of 2 modulo (2n+1) — the smallest k such that 2<sup>k</sup> ≡ 1 (mod 2n+1).<br>
+        <span style="color:#3d3d5c; font-size:0.85rem; margin-top:8px; display:block;">Formula contributed by Sean A. Irvine · Apr 20 2026</span>
+      </p>
+    </div>
+    <p style="color:var(--muted); line-height:1.8; max-width:64ch; font-size:0.9rem;">
+      The deep reason: each full step acts as multiplication by 2 modulo (2n+1) on a cyclic encoding of the deck state. The deck returns to its initial configuration after exactly A002326(n) full cycles — each consisting of n sub-steps.
+    </p>
+  </section>
+
+  <!-- VALUES TABLE -->
+  <section class="section">
+    <div class="section-label">Values</div>
+    <h2>First 20 Terms</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>n</th>
+            <th>A002326(n)</th>
+            <th>a(n) = n × A002326(n)</th>
+          </tr>
+        </thead>
+        <tbody id="values-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- EXAMPLE -->
+  <section class="section">
+    <div class="section-label">Example</div>
+    <h2>Walkthrough: n = 3</h2>
+    <p style="color:var(--muted); line-height:1.7; max-width:60ch; font-size:0.9rem; margin-bottom:24px;">
+      Starting deck: [1↑, 2↑, 3↑]. Each card chip shows its label; rotated = face down. After 3 full steps (9 sub-steps total), the deck returns to its initial state.
+    </p>
+    <div class="steps-grid" id="steps-grid"></div>
+  </section>
+
+  <!-- CODE -->
+  <section class="section">
+    <div class="section-label">Program</div>
+    <h2>Python Implementation</h2>
+    <div class="code-block">
+      <button class="copy-btn" onclick="copyCode()">COPY</button>
+      <pre id="code-pre"><span class="kw">def</span> <span class="fn">a</span>(n):
+    <span class="cm"># Each card: [id, face] where face 1=up, 0=down</span>
+    deck <span class="op">=</span> [[i, <span class="nm">1</span>] <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n)]
+    steps <span class="op">=</span> <span class="nm">0</span>
+    <span class="kw">while</span> <span class="nm">True</span>:
+        <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1</span>, n <span class="op">+</span> <span class="nm">1</span>):
+            packet <span class="op">=</span> deck[:k]
+            packet.<span class="fn">reverse</span>()
+            <span class="kw">for</span> card <span class="kw">in</span> packet:
+                card[<span class="nm">1</span>] <span class="op">=</span> <span class="nm">1</span> <span class="op">-</span> card[<span class="nm">1</span>]
+            deck <span class="op">=</span> packet <span class="op">+</span> deck[k:]
+            steps <span class="op">+=</span> <span class="nm">1</span>
+            <span class="kw">if</span> <span class="fn">all</span>(deck[i][<span class="nm">0</span>] <span class="op">==</span> i <span class="kw">and</span> deck[i][<span class="nm">1</span>] <span class="op">==</span> <span class="nm">1</span>
+                   <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n)):
+                <span class="kw">return</span> steps
+
+<span class="fn">print</span>([<span class="fn">a</span>(n) <span class="kw">for</span> n <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1</span>, <span class="nm">21</span>)])
+<span class="cm"># Verified manually and computationally up to n=20</span></pre>
+    </div>
+  </section>
+
+  <!-- METADATA -->
+  <section class="section">
+    <div class="section-label">Metadata</div>
+    <h2>Sequence Info</h2>
+    <div class="info-grid">
+      <div class="info-cell">
+        <div class="label">OEIS ID</div>
+        <div class="value"><a href="https://oeis.org/A395069" target="_blank">A395069</a></div>
+      </div>
+      <div class="info-cell">
+        <div class="label">Author</div>
+        <div class="value">Fabio Longo, Apr 10 2026</div>
+      </div>
+      <div class="info-cell">
+        <div class="label">Offset</div>
+        <div class="value">1, 1</div>
+      </div>
+      <div class="info-cell">
+        <div class="label">Keywords</div>
+        <div class="value">nonn, new</div>
+      </div>
+      <div class="info-cell">
+        <div class="label">Formula by</div>
+        <div class="value">Sean A. Irvine, Apr 20 2026</div>
+      </div>
+      <div class="info-cell">
+        <div class="label">Cross-refs</div>
+        <div class="value">
+          <a href="https://oeis.org/A002326" target="_blank">A002326</a>,
+          <a href="https://oeis.org/A289386" target="_blank">A289386</a>,
+          <a href="https://oeis.org/A323712" target="_blank">A323712</a>
+        </div>
+      </div>
+      <div class="info-cell">
+        <div class="label">Simulator</div>
+        <div class="value"><a href="https://jeriko001.github.io/Card-permutation/" target="_blank">jeriko001.github.io/Card-permutation</a></div>
+      </div>
+      <div class="info-cell">
+        <div class="label">Status</div>
+        <div class="value" style="color:#7ecfb0;">✓ Approved</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">
+    <strong>A395069</strong> — Card Permutation Sequence<br>
+    Discovered by Fabio Longo · Published on OEIS · Apr 2026
+  </div>
+  <div class="footer-right">
+    <a href="https://oeis.org/A395069" target="_blank" class="btn btn-ghost">OEIS ↗</a>
+    <a href="https://jeriko001.github.io/Card-permutation/" target="_blank" class="btn btn-ghost">Simulator ↗</a>
+  </div>
+</footer>
+
+<script>
+  // Values table
+  const a002326 = [2,4,3,6,10,12,4,8,18,6,11,20,18,28,5,10,12,36,12,20];
+  const tbody = document.getElementById('values-tbody');
+  a002326.forEach((ord, i) => {
+    const n = i + 1;
+    const an = n * ord;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${n}</td><td>${ord}</td><td>${an}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Example steps for n=3
+  const stepsData = [
+    {
+      label: 'Step 1',
+      ops: [
+        { k: 'k=1', before: [{id:1,up:true},{id:2,up:true},{id:3,up:true}], after: [{id:1,up:false},{id:2,up:true},{id:3,up:true}] },
+        { k: 'k=2', before: [{id:1,up:false},{id:2,up:true},{id:3,up:true}], after: [{id:2,up:false},{id:1,up:true},{id:3,up:true}] },
+        { k: 'k=3', before: [{id:2,up:false},{id:1,up:true},{id:3,up:true}], after: [{id:3,up:false},{id:1,up:false},{id:2,up:true}] },
+      ]
+    },
+    {
+      label: 'Step 2',
+      ops: [
+        { k: 'k=1', before: [{id:3,up:false},{id:1,up:false},{id:2,up:true}], after: [{id:3,up:true},{id:1,up:false},{id:2,up:true}] },
+        { k: 'k=2', before: [{id:3,up:true},{id:1,up:false},{id:2,up:true}], after: [{id:1,up:true},{id:3,up:false},{id:2,up:true}] },
+        { k: 'k=3', before: [{id:1,up:true},{id:3,up:false},{id:2,up:true}], after: [{id:2,up:false},{id:3,up:true},{id:1,up:false}] },
+      ]
+    },
+    {
+      label: 'Step 3',
+      ops: [
+        { k: 'k=1', before: [{id:2,up:false},{id:3,up:true},{id:1,up:false}], after: [{id:2,up:true},{id:3,up:true},{id:1,up:false}] },
+        { k: 'k=2', before: [{id:2,up:true},{id:3,up:true},{id:1,up:false}], after: [{id:3,up:false},{id:2,up:false},{id:1,up:false}] },
+        { k: 'k=3', before: [{id:3,up:false},{id:2,up:false},{id:1,up:false}], after: [{id:1,up:true},{id:2,up:true},{id:3,up:true}] },
+      ]
+    }
+  ];
+
+  function renderCards(cards) {
+    return cards.map(c =>
+      `<div class="card-chip ${c.up ? 'up' : 'down'}">${c.id}</div>`
+    ).join('');
+  }
+
+  const grid = document.getElementById('steps-grid');
+  stepsData.forEach(step => {
+    const card = document.createElement('div');
+    card.className = 'step-card';
+    card.innerHTML = `<div class="step-number">${step.label}</div><div class="step-ops">` +
+      step.ops.map(op => `
+        <div class="step-op">
+          <span class="k-label">${op.k}</span>
+          <div class="cards-before">${renderCards(op.before)}</div>
+          <span class="arrow">→</span>
+          <div class="cards-after">${renderCards(op.after)}</div>
+        </div>
+      `).join('') +
+    `</div>`;
+    grid.appendChild(card);
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.section').forEach(s => observer.observe(s));
+
+  // Copy code
+  function copyCode() {
+    const code = `def a(n):
+    deck = [[i, 1] for i in range(n)]
+    steps = 0
+    while True:
+        for k in range(1, n + 1):
+            packet = deck[:k]
+            packet.reverse()
+            for card in packet:
+                card[1] = 1 - card[1]
+            deck = packet + deck[k:]
+            steps += 1
+            if all(deck[i][0] == i and deck[i][1] == 1
+                   for i in range(n)):
+                return steps
+
+print([a(n) for n in range(1, 21)])`;
+    navigator.clipboard.writeText(code).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = 'COPIED!';
+      setTimeout(() => btn.textContent = 'COPY', 2000);
+    });
+  }
+</script>
+</body>
+</html>
